@@ -1,4 +1,5 @@
-/* eslint-disable linebreak-style */
+/* eslint-disable */
+
 import Vue from 'vue';
 import Vuex from 'vuex';
 import VuexPersistence from 'vuex-persist';
@@ -33,14 +34,7 @@ export default new Vuex.Store({
       state.todos.push(todo);
     },
     TOGGLE_TODO: (state: any, id) => {
-      state.todos = state.todos.map((todo: any) => {
-        // console.log(id);
-        const newtodo: any = todo;
-        if (newtodo.id === id) {
-          newtodo.done = !todo.done;
-        }
-        return newtodo;
-      });
+
     },
     removeTodo: (state, id) => {
       state.todos = state.todos.filter((el) => el.id !== id);
@@ -57,18 +51,35 @@ export default new Vuex.Store({
           commit('SET_LOADING', false);
         });
     },
-    addTodo: ({ commit }, todo) => {
+    addTodo: ({ commit, dispatch }, todo) => {
       if (todo) {
         axios.post('/notes', todo).then(() => {
-          commit('ADD_TODO', todo);
+          dispatch('initTodos');
         });
       }
     },
-    toggle: ({ commit }, id) => {
-      commit('toggle', id);
+    toggle: ({ commit, dispatch }, todo) => {
+      const newTodo = todo;
+      newTodo.done = !newTodo.done;
+
+      axios
+      .put('/notes', newTodo)
+      .then((r) => r.data)
+      .then(() => { 
+        dispatch('initTodos');
+      })
+
     },
-    removeTodo: ({ commit }, id) => {
-      commit('removeTodo', id);
+    removeTodo: ({ commit, dispatch }, id) => {
+      commit('removeTodo', {
+        id: id
+      });
+      axios
+      .delete('/notes/'+id)
+      .then((r) => r.data)
+      .then(() => { 
+        dispatch('initTodos');
+      })
     },
   },
   plugins: [vuexLocal.plugin],
